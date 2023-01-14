@@ -8,78 +8,79 @@
 import SwiftUI
 import CoreData
 
-struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
-
+/*struct ContentView: View {
+let students = ["sandeep", "tomar", "dev"]
+    @State private var selectedStudent = ""
     var body: some View {
         NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+            Form {
+                Picker("Select Your Student", selection: $selectedStudent ) {
+                    ForEach(students, id: \.self) {
+                        Text($0)
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }
 }
+*/
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+struct ContentView: View {
+    
+    @State private var checkAmout = 0.0
+    @State private var numberOfPeople = 2
+    @State private var tipPercentage = 20
+    let tipPercentages = [10,15,20,25,0]
+    @FocusState var amountFocused: Bool
+    var totalPerPerson: Double {
+        let peopleCount = Double(numberOfPeople + 2)
+        let tipSelection = Double(tipPercentage)
+        let tipValue = checkAmout / 100 * tipSelection
+        let grandTotal = checkAmout + tipValue
+        return grandTotal
+    }
+    
+    var body: some View {
+        Form {
+            Section {
+                TextField("Amount", value: $checkAmout, format: .currency(code: Locale.current.currency?.identifier ?? "USD" ))
+                    .keyboardType(.decimalPad)
+                    .focused($amountFocused)
+                
+                Picker("Number of People", selection: $numberOfPeople) {
+                    ForEach(2..<100) {
+                        Text("\($0) People")
+                    }
+                }
+            }
+            
+            Section {
+                
+                Picker("Select Percentage", selection:  $tipPercentage) {
+                    ForEach(tipPercentages, id: \.self) {
+                        Text($0, format: .percent)
+                    }
+                }
+                .pickerStyle(.segmented)
+            } header: {
+                Text("How much tip do you want to leave")
+            }
+            
+            Section {
+                Text(totalPerPerson, format: .currency(code: Locale.current.currency?.identifier ?? "USD" ))
+            }
+        }
+        .navigationTitle("Sandeep Tomar")
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    amountFocused = false
+                }
+            }
+        }
+    }
+}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
